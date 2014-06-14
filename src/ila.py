@@ -20,7 +20,7 @@ cursor = con.cursor()
 
 # Data Entry
 
-## Read from the train.csv (Training Set) 
+## Read from the train.csv (Training Set)
 traincsv = open(path.join(scriptdir, 'test.csv'))
 lines = traincsv.readlines()
 
@@ -39,26 +39,30 @@ def lineparse(line):
 titles = lineparse(lines[0]) ## The first line is only titles
 cases = map(lineparse, lines[1:]) ## The rest of lines are the data
 
+
+#print cases
+
 ## Close the opened file (train.csv)
 traincsv.close()
 
-cursor.execute('''SELECT r.id, d.name 
-                      FROM rule as r
-                      INNER JOIN decision AS d
-                        ON d.id = r.decision_id
-                      ORDER BY r.decision_id''')
+
+cursor.execute('''SELECT r.id, d.name
+FROM rule as r
+INNER JOIN decision AS d
+ON d.id = r.decision_id
+ORDER BY r.decision_id''')
 
 rules = []
 
 for ruleid, dname in cursor.fetchall():
     
-    cursor.execute('''SELECT at.name, av.name 
-                      FROM `condition` AS c
-                      INNER JOIN attribute_value AS av
-                        ON av.id = c.attribute_value_id
-                      INNER JOIN attribute AS at 
-                        ON at.id = av.attribute_id
-                      WHERE c.rule_id = ?''', [ruleid])
+    cursor.execute('''SELECT at.name, av.name
+		      FROM `condition` AS c
+		      INNER JOIN attribute_value AS av
+		      ON av.id = c.attribute_value_id
+		      INNER JOIN attribute AS at
+		      ON at.id = av.attribute_id
+		      WHERE c.rule_id = ?''', [ruleid])
     
     conditions = {}
     for atname, avname in cursor.fetchall():
@@ -70,8 +74,10 @@ for ruleid, dname in cursor.fetchall():
         "conditions": conditions
     })
 
-#~ print rules
-#~ exit()
+#for index in rules:
+#	print index
+
+#exit()
 
 
 def casedict(case):
@@ -85,10 +91,12 @@ def casedict(case):
     
     return mappedcase, decision
 
+
 idx = 0
 for case, decision in map(casedict, cases):
     idx += 1
-    
+# case is list of dictionaries for all tuples
+# decision is list of decisions
     applyingrule = None
     for rule in rules:
         
@@ -121,4 +129,3 @@ for case, decision in map(casedict, cases):
 
 con.commit()
 con.close()
-
